@@ -1,12 +1,12 @@
 import numpy
 import tensorflow._api.v2.compat.v1 as tensorflow
-from models import deeper_fcn
+from models import deeper_fcn, stacked_cnn_rnn_improved, rnn_gru
 
 input = []
 output = []
 
-aggregate_files = ["../aggr_24-03-23.csv", "../aggr_26-03-23.csv"]
-raw_files = ["../newraw_24-03-23.csv", "../newraw_26-03-23.csv"]
+aggregate_files = ["../aggr_24-03-23.csv", "../aggr_26-03-23.csv", "../aggr_28-03-23.csv", "../aggr_29-03-23.csv"]
+raw_files = ["../newraw_24-03-23.csv", "../newraw_26-03-23.csv", "../newraw_28-03-23.csv", "../newraw_29-03-23.csv"]
 if len(aggregate_files)!=len(raw_files):
     print("aggregate files and raw files should match, not only in number but in generation time")
     exit()
@@ -48,15 +48,15 @@ print("total data shapes: ", input.shape, output.shape)
 tensorflow.logging.set_verbosity(tensorflow.logging.ERROR)
 config = tensorflow.ConfigProto()
 tensorflow.keras.backend.set_session(tensorflow.Session(config=config))
-enlarge=1
+enlarge=4
 model_params = dict(metrics=["mae", "mape"], enlarge=enlarge)
 fit_params = dict(epochs=250, verbose=2)
 
 model = deeper_fcn.create(**model_params)
 
-with open("output/deeper_fcn2/model.json", 'w') as fp:
+with open("output/deeper_fcn3/model.json", 'w') as fp:
     fp.write(model.to_json())
 
 model.fit(input, output, **fit_params)
-model.save_weights("output/deeper_fcn2/weights")
+model.save_weights("output/deeper_fcn3/weights")
 tensorflow.keras.backend.clear_session()

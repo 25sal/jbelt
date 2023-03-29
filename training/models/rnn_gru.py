@@ -26,7 +26,8 @@ Network architecture:
     | output |            1 |     - |    - | x_bpm = 68+100*x      |
     +--------+--------------+-------+------+-----------------------+
 """
-import tensorflow as tf
+#import tensorflow as tf
+import tensorflow._api.v2.compat.v1 as tf
 
 
 def get(input_shape=(None, 1), scale_output=100., offset_output=68., enlarge=1,
