@@ -1,5 +1,6 @@
 import time, asyncio, signal
 from nuovacintura5 import *
+from datetime import datetime
 
 record = [
     [0, 0, 0], # timestamp, heartrate, breathrate
@@ -54,10 +55,10 @@ async def main():
     asyncio.get_event_loop().add_signal_handler(signal.SIGINT,handler )
 
     
-
+    datestr =  datetime.now().strftime("%F_%H-%M-%S")
     belt=HappySleep_belt()
-    rawcsv = open("raw_26-03-23.csv", "w")
-    aggrcsv = open("aggr_26-03-23.csv", "w")
+    rawcsv = open("raw_"+datestr+".csv", "w")
+    aggrcsv = open("aggr_"+datestr+".csv", "w")
 
     syncjob = asyncio.create_task(sync_files(rawcsv, aggrcsv))
 
