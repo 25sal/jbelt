@@ -1,8 +1,31 @@
-import numpy
+import numpy, sys, os
 
-filename = "../raw_24-03-23.csv"
+filename = "raw_2023-04-03_04-22-31.csv"
 
-vettone = numpy.genfromtxt(filename, delimiter=",")
+def printhelp():
+  print("""Analyze a bcg log in csv format as per the
+  Documentation provided, providing Frequency,
+  Period and info about the per-message delay.
+  Then it saves a new csv which has an integer
+  number of 120-240ms couples and a simulated
+  per-value timestamp.
+  
+  {} filename
+     will save a file as newfilename in the same folder""".format(sys.argv[0]))
+
+if len(sys.argv) != 2:
+  printhelp()
+  exit()
+ 
+fpath = sys.argv[1]
+
+if not os.path.isfile(fpath):
+  printhelpt()
+  exit()
+
+vettone = numpy.genfromtxt(fpath, delimiter=",")
+folder, _, filename = fpath.rpartition("/")
+
 print("data imported of shape", vettone.shape)
 #calcola delta1
 delta1 = vettone[9][0]-vettone[0][0]
@@ -22,6 +45,7 @@ print("found deltan", deltan)
 if abs(deltan-0.120)>abs(deltan-0.240):
     if idealstart:
         new = vettone[:-9]
+        print("Removed 9 values to obtain whole couples of messages 120+240")
     else:
         new = vettone
 else:
@@ -29,6 +53,7 @@ else:
         new = vettone
     else:
         new = vettone[:-9]
+        print("Removed 9 values to obtain whole couples of messages 120+240")
 
 #controllo gli indici:
 if new[-1][0]!=new[-2][0]:
@@ -52,7 +77,7 @@ print("first tuple: from ", new[0], ", to ", newnew[0])
 print("second last tuple: from ", new[-2], ", to ", newnew[-2])
 print("last tuple: from ", new[-1], ", to ", newnew[-1], end="\n\n")
 
-print("verify precision on last timestamp (they should match in precision and value):\nInitial csv:", vettone[-1][0], ", final csv:", newnew[-1][6])
+print("verify precision on last timestamp (they should match in precision and value):\nInitial csv: {:.36}\nfinal csv:   {:.36}".format(new[-1][0], newnew[-1][6]))
 
 print("saving file new"+filename)
-numpy.savetxt("../new"+filename, newnew, delimiter=",")
+numpy.savetxt(folder+"/new"+filename, newnew, delimiter=",")
