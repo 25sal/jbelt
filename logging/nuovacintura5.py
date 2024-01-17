@@ -142,7 +142,7 @@ class HappySleep_belt(BleakClient) :
         # in little endian, we can take the less significative byte easily at index 0
         sum = sum.to_bytes(2, 'little')
 
-        return sum[0].to_bytes(1)
+        return sum[0].to_bytes(1, byteorder='big')
         
 
     def __fill_command(self, incomplete:bytearray):
@@ -178,7 +178,7 @@ class HappySleep_belt(BleakClient) :
         ss = (now.second//10)*16+now.second%10
 
         bcd_encoded = bytearray()
-        bcd_encoded += yy.to_bytes(1)+MM.to_bytes(1)+dd.to_bytes(1)+hh.to_bytes(1)+mm.to_bytes(1)+ss.to_bytes(1)
+        bcd_encoded += yy.to_bytes(1, byteorder='big')+MM.to_bytes(1, byteorder='big')+dd.to_bytes(1, byteorder='big')+hh.to_bytes(1, byteorder='big')+mm.to_bytes(1, byteorder='big')+ss.to_bytes(1, byteorder='big')
         return bcd_encoded
     
     def __decode_date(self, array:bytearray):
@@ -200,7 +200,7 @@ class HappySleep_belt(BleakClient) :
             verboseprint(datetime.now(), "|", ', '.join(hex(b) for b in data))
             nonlocal self
 
-            if (data[0]).to_bytes(1) == RESPONSES.GET_DEVICENAME_HEADER:
+            if (data[0]).to_bytes(1, byteorder='big') == RESPONSES.GET_DEVICENAME_HEADER:
                 verboseprint(_decode_name(data[1:15]))
 
             #from 3.1 set time
@@ -215,7 +215,7 @@ class HappySleep_belt(BleakClient) :
             elif data == RESPONSES.GET_TIME_ERROR:
                 verboseprint("Time packet received error")
                 self.__time_event.set(ResponseResult.FAILURE)
-            elif data[0].to_bytes(1) == RESPONSES.GET_TIME_HEADER:
+            elif data[0].to_bytes(1, byteorder='big') == RESPONSES.GET_TIME_HEADER:
                 verboseprint("Time packet received")
                 self.__time_event.set(ResponseResult.SUCCESS, self.__decode_date(data[1:15]))
 
@@ -231,12 +231,12 @@ class HappySleep_belt(BleakClient) :
             elif data == RESPONSES.GET_USERINFO_ERROR:
                 verboseprint("Userinfo request error")
                 self.__userinfo_event.set(ResponseResult.FAILURE)
-            elif data[0].to_bytes(1) == RESPONSES.GET_USERINFO_HEADER:
+            elif data[0].to_bytes(1, byteorder='big') == RESPONSES.GET_USERINFO_HEADER:
                 verboseprint("Userinfo received", data[1], data[2], data[3], data[4])
                 self.__userinfo_event.set(ResponseResult.SUCCESS, Userinfo(data[1], data[2], data[3], data[4]))
 
 
-            elif data[0].to_bytes(1) == RESPONSES.GET_HEARTRATE_HEADER:
+            elif data[0].to_bytes(1, byteorder='big') == RESPONSES.GET_HEARTRATE_HEADER:
                 self.__decode_storage_heartbreath(data)
 
             #from 3.8 real time heart rate and breathing mode control
@@ -246,7 +246,7 @@ class HappySleep_belt(BleakClient) :
             elif data == RESPONSES.GET_REALTIME_HEARTBREATH_OK:
                 self.__realtime_heartbreath_event.set(ResponseResult.SUCCESS)
                 verboseprint("Set up realtime heart rate and breath control success")
-            elif data[0].to_bytes(1) == RESPONSES.GET_REALTIME_HEARTBREATH_HEADER:
+            elif data[0].to_bytes(1, byteorder='big') == RESPONSES.GET_REALTIME_HEARTBREATH_HEADER:
                 verboseprint("heart rate and breath control packet received:")
                 if self.is_realtime_heartbreath_on: #and self.__realtime_heartbreath_callback is not None:
                    
@@ -262,7 +262,7 @@ class HappySleep_belt(BleakClient) :
             elif data == RESPONSES.GET_POWER_ERROR:
                 verboseprint("Power packet, error")
                 self.__power_event.set(ResponseResult.FAILURE)
-            elif data[0].to_bytes(1) == RESPONSES.GET_POWER_HEADER:
+            elif data[0].to_bytes(1, byteorder='big') == RESPONSES.GET_POWER_HEADER:
                 verboseprint("Power packet received, success")
                 self.__power_event.set(ResponseResult.SUCCESS, data[1]/8*100)
 
@@ -274,7 +274,7 @@ class HappySleep_belt(BleakClient) :
             elif data == RESPONSES.GET_RAWDATA_OK:
                 verboseprint("Setting realtime ballistocardiography data stream success")
                 self.__realtime_raw_bcg_event.set(ResponseResult.SUCCESS)
-            elif data[0].to_bytes(1) == RESPONSES.GET_RAWDATA_HEADER:
+            elif data[0].to_bytes(1, byteorder='big') == RESPONSES.GET_RAWDATA_HEADER:
                 verboseprint("bcg raw data packet received")
                 if self.is_realtime_raw_bcg_on and self.__realtime_raw_bcg_callback is not None:
                     self.__realtime_raw_bcg_callback( 
@@ -302,10 +302,10 @@ class HappySleep_belt(BleakClient) :
                 self.__realtime_humitemp_event.set(ResponseResult.FAILURE)
             #elif data == RESPONSES.GET_TEMPERATURE_OK:
             #THIS CHECK DOES NOT WORK (SEE UPDATED REFERENCE)
-            elif data[0].to_bytes(1) == RESPONSES.GET_TEMPERATURE_HEADER and data[3:15] == b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' :
+            elif data[0].to_bytes(1, byteorder='big') == RESPONSES.GET_TEMPERATURE_HEADER and data[3:15] == b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' :
                 self.__realtime_humitemp_event.set(ResponseResult.SUCCESS)
                 verboseprint("Set up temperature and humidity on success")
-            elif data[0].to_bytes(1) == RESPONSES.GET_TEMPERATURE_HEADER:
+            elif data[0].to_bytes(1, byteorder='big') == RESPONSES.GET_TEMPERATURE_HEADER:
                 verboseprint("temperature and humidity packet received ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 if self.is_realtime_temperature_humidity_on and self.__realtime_humitemp_callback is not None:
                     if asyncio.iscoroutinefunction(self.__realtime_humitemp_callback):
@@ -517,9 +517,9 @@ class HappySleep_belt(BleakClient) :
                 print ("Missing information")
                 return False
             gender = 1 if  gender == 1 or gender == True or gender == "Male" else 0
-            packet += gender.to_bytes(1) + age.to_bytes(1) + height.to_bytes(1) + weight.to_bytes(1)
+            packet += gender.to_bytes(1, byteorder='big') + age.to_bytes(1, byteorder='big') + height.to_bytes(1, byteorder='big') + weight.to_bytes(1, byteorder='big')
         else:
-            packet += userinfo.gender.to_bytes(1)+userinfo.age.to_bytes(1)+userinfo.height.to_bytes(1)+userinfo.weight.to_bytes(1)
+            packet += userinfo.gender.to_bytes(1, byteorder='big')+userinfo.age.to_bytes(1, byteorder='big')+userinfo.height.to_bytes(1, byteorder='big')+userinfo.weight.to_bytes(1, byteorder='big')
         
         await self.__userinfo_lock.acquire()
         packet = self.__fill_command(packet)
@@ -682,7 +682,7 @@ class HappySleep_belt(BleakClient) :
         await self.__storage_heartbreath_lock.acquire()
 
         self.__temp_storage_heartbreath = []
-        AA = n_groups.to_bytes(1, signed=False)
+        AA = n_groups.to_bytes(1,  byteorder='big', signed=False)
         try:
             packet = COMMANDS.GET_HEARTRATE_HEADER + AA
             packet = self.__fill_command(packet)
