@@ -56,7 +56,7 @@ async def main():
 
     
     datestr =  datetime.now().strftime("%F_%H-%M-%S")
-    belt=HappySleep_belt()
+    belt=HappySleep_belt("EE:D9:D4:30:EE:F8")
     rawcsv = open("raw_"+datestr+".csv", "w")
     aggrcsv = open("aggr_"+datestr+".csv", "w")
 

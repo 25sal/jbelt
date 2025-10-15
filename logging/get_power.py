@@ -5,7 +5,7 @@ from nuovacintura5 import *
 async def main():
     
 
-    belt = HappySleep_belt()
+    belt = HappySleep_belt("EE:D9:D4:30:EE:F8")
     try:
         await belt.connect()
         print("Power: "+str(await belt.get_power())+"%")
